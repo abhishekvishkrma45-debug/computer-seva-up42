@@ -3,141 +3,143 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>2D Mini GTA Game</title>
+  <title>Computer Certificate Generator</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { background: #111; color: #fff; text-align: center; font-family: sans-serif; overflow: hidden; }
-    #instructions { padding: 10px; background: #222; font-size: 14px; }
-    canvas { background: #333; display: block; margin: 10px auto; border: 2px solid #555; }
+    * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; }
+    body { background-color: #0f172a; color: #333; display: flex; flex-direction: column; align-items: center; padding: 20px; min-height: 100vh; }
+
+    .form-box { background: #1e293b; color: #fff; padding: 25px; border-radius: 12px; width: 100%; max-width: 550px; box-shadow: 0 8px 20px rgba(0,0,0,0.4); margin-bottom: 25px; }
+    .form-box h2 { text-align: center; color: #38bdf8; margin-bottom: 20px; }
+    .form-group { margin-bottom: 12px; }
+    label { display: block; font-size: 14px; margin-bottom: 5px; color: #94a3b8; }
+    input, select { width: 100%; padding: 10px; border: 1px solid #334155; background: #0f172a; color: #fff; border-radius: 6px; font-size: 14px; outline: none; }
+    
+    .btn { width: 100%; padding: 12px; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; color: white; margin-top: 10px; }
+    .btn-blue { background: #2563eb; }
+    .btn-green { background: #16a34a; }
+
+    /* Certificate Design */
+    .cert-container { display: none; width: 100%; max-width: 800px; background: #fff; padding: 15px; }
+    .cert-border { border: 8px double #1e3a8a; padding: 30px; text-align: center; background: #fafafa; position: relative; }
+    .inst-name { font-size: 28px; font-weight: bold; color: #1e3a8a; text-transform: uppercase; letter-spacing: 1px; }
+    .inst-sub { font-size: 13px; color: #64748b; margin-bottom: 20px; }
+    
+    .cert-title { font-size: 34px; font-family: 'Georgia', serif; color: #b45309; margin: 15px 0; text-transform: uppercase; font-weight: bold; }
+    .cert-text { font-size: 16px; color: #334155; margin: 10px 0; line-height: 1.6; }
+    .student-name { font-size: 26px; font-weight: bold; color: #0f172a; border-bottom: 2px solid #1e3a8a; display: inline-block; padding: 0 15px; margin: 10px 0; }
+    .course-name { font-size: 22px; font-weight: bold; color: #2563eb; }
+
+    .cert-details { margin: 20px auto; width: 80%; border-collapse: collapse; }
+    .cert-details td { padding: 6px 10px; font-size: 14px; text-align: left; border-bottom: 1px dashed #cbd5e1; }
+
+    .cert-footer { margin-top: 40px; display: flex; justify-content: space-between; align-items: flex-end; }
+    .sig-box { border-top: 1px solid #333; width: 160px; font-size: 13px; font-weight: bold; padding-top: 5px; }
+    .seal { width: 75px; height: 75px; border-radius: 50%; background: #1e3a8a; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold; text-align: center; border: 2px dashed #facc15; }
   </style>
 </head>
 <body>
 
-  <div id="instructions">
-    🎮 <b>Controls:</b> Arrow Keys / WASD = Move | <b>F</b> = Enter/Exit Car
+<div class="form-box">
+  <h2>कंप्यूटर सर्टिफिकेट फॉर्म</h2>
+  <div class="form-group">
+    <label>सेंटर का नाम (Institute Name)</label>
+    <input type="text" id="instNameInput" value="National Computer Academy">
   </div>
-  <canvas id="gameCanvas" width="800" height="500"></canvas>
+  <div class="form-group">
+    <label>छात्र का नाम (Student Name)</label>
+    <input type="text" id="studentNameInput" placeholder="नाम लिखें">
+  </div>
+  <div class="form-group">
+    <label>कोर्स का नाम (Course)</label>
+    <select id="courseInput">
+      <option value="ADCA (Advanced Diploma in Computer Applications)">ADCA</option>
+      <option value="DCA (Diploma in Computer Applications)">DCA</option>
+      <option value="CCC (Course on Computer Concepts)">CCC</option>
+      <option value="Tally Prime & Accounting">Tally Prime</option>
+    </select>
+  </div>
+  <div class="form-group">
+    <label>ग्रेड / ग्रेडिंग (Grade)</label>
+    <input type="text" id="gradeInput" value="A+">
+  </div>
+  <button class="btn btn-blue" onclick="generateCertificate()">सर्टिफिकेट बनाएं</button>
+</div>
 
-  <script>
-    const canvas = document.getElementById('gameCanvas');
-    const ctx = canvas.getContext('2d');
+<!-- Certificate Target -->
+<div id="certificateArea" class="cert-container">
+  <div class="cert-border">
+    <div class="inst-name" id="outInstName">National Computer Academy</div>
+    <div class="inst-sub">An ISO 9001:2015 Certified Computer Education Institute</div>
+    
+    <div class="cert-title">Certificate of Completion</div>
+    <div class="cert-text">This is to certify that</div>
+    <div class="student-name" id="outStudentName">-</div>
+    <div class="cert-text">has successfully completed the course in</div>
+    <div class="course-name" id="outCourse">-</div>
 
-    // Player
-    const player = {
-      x: 100,
-      y: 100,
-      size: 15,
-      color: '#38bdf8',
-      speed: 3,
-      inCar: false
+    <table class="cert-details">
+      <tr>
+        <td><strong>Roll No / Reg ID:</strong> <span id="outRollNo">-</span></td>
+        <td><strong>Grade Awarded:</strong> <span id="outGrade">-</span></td>
+      </tr>
+      <tr>
+        <td><strong>Issue Date:</strong> <span id="outDate">-</span></td>
+        <td><strong>Status:</strong> Passed</td>
+      </tr>
+    </table>
+
+    <div class="cert-footer">
+      <div class="sig-box">Course Coordinator</div>
+      <div class="seal">VERIFIED<br>CERTIFICATE</div>
+      <div class="sig-box">Authorized Signatory</div>
+    </div>
+  </div>
+</div>
+
+<button id="pdfBtn" class="btn btn-green" style="display:none; max-width: 550px;" onclick="downloadPDF()">📄 Download PDF Certificate</button>
+
+<script>
+  function generateCertificate() {
+    const inst = document.getElementById('instNameInput').value.trim();
+    const student = document.getElementById('studentNameInput').value.trim();
+    const course = document.getElementById('courseInput').value;
+    const grade = document.getElementById('gradeInput').value.trim();
+
+    if(!student) {
+      alert('कृपया छात्र का नाम दर्ज करें!');
+      return;
+    }
+
+    const today = new Date().toLocaleDateString('en-GB');
+    const randomRoll = 'NCA-' + Math.floor(100000 + Math.random() * 900000);
+
+    document.getElementById('outInstName').innerText = inst || 'National Computer Academy';
+    document.getElementById('outStudentName').innerText = student;
+    document.getElementById('outCourse').innerText = course;
+    document.getElementById('outGrade').innerText = grade;
+    document.getElementById('outRollNo').innerText = randomRoll;
+    document.getElementById('outDate').innerText = today;
+
+    document.getElementById('certificateArea').style.display = 'block';
+    document.getElementById('pdfBtn').style.display = 'block';
+  }
+
+  function downloadPDF() {
+    const element = document.getElementById('certificateArea');
+    const studentName = document.getElementById('outStudentName').innerText;
+    
+    const options = {
+      margin:       5,
+      filename:     `Certificate_${studentName}.pdf`,
+      image:        { type: 'jpeg', quality: 0.98 },
+      html2canvas:  { scale: 2 },
+      jsPDF:        { unit: 'mm', format: 'a4', orientation: 'landscape' }
     };
 
-    // Car
-    const car = {
-      x: 300,
-      y: 200,
-      width: 40,
-      height: 25,
-      color: '#ef4444',
-      speed: 5
-    };
+    html2pdf().set(options).from(element).save();
+  }
+</script>
 
-    // Buildings (Obstacles/City Layout)
-    const buildings = [
-      { x: 200, y: 50, w: 100, h: 100 },
-      { x: 500, y: 100, w: 150, h: 200 },
-      { x: 100, y: 300, w: 250, h: 120 }
-    ];
-
-    const keys = {};
-
-    window.addEventListener('keydown', e => {
-      keys[e.key.toLowerCase()] = true;
-      if (e.key.toLowerCase() === 'f') toggleCar();
-    });
-
-    window.addEventListener('keyup', e => {
-      keys[e.key.toLowerCase()] = false;
-    });
-
-    function toggleCar() {
-      if (!player.inCar) {
-        // Check distance to car
-        let dist = Math.hypot(player.x - (car.x + car.width/2), player.y - (car.y + car.height/2));
-        if (dist < 50) {
-          player.inCar = true;
-        }
-      } else {
-        // Exit car
-        player.inCar = false;
-        player.x = car.x - 20;
-        player.y = car.y;
-      }
-    }
-
-    function update() {
-      let currentSpeed = player.inCar ? car.speed : player.speed;
-
-      if (keys['arrowup'] || keys['w']) {
-        if (player.inCar) car.y -= currentSpeed; else player.y -= currentSpeed;
-      }
-      if (keys['arrowdown'] || keys['s']) {
-        if (player.inCar) car.y += currentSpeed; else player.y += currentSpeed;
-      }
-      if (keys['arrowleft'] || keys['a']) {
-        if (player.inCar) car.x -= currentSpeed; else player.x -= currentSpeed;
-      }
-      if (keys['arrowright'] || keys['d']) {
-        if (player.inCar) car.x += currentSpeed; else player.x += currentSpeed;
-      }
-
-      // If player is inside car, sync positions
-      if (player.inCar) {
-        player.x = car.x + car.width / 2;
-        player.y = car.y + car.height / 2;
-      }
-    }
-
-    function draw() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      // Draw Roads Grid
-      ctx.strokeStyle = '#444';
-      ctx.lineWidth = 40;
-      ctx.beginPath();
-      ctx.moveTo(0, 212); ctx.lineTo(800, 212);
-      ctx.moveTo(400, 0); ctx.lineTo(400, 500);
-      ctx.stroke();
-
-      // Draw Buildings
-      ctx.fillStyle = '#1e293b';
-      buildings.forEach(b => {
-        ctx.fillRect(b.x, b.y, b.w, b.h);
-        ctx.strokeStyle = '#475569';
-        ctx.lineWidth = 2;
-        ctx.strokeRect(b.x, b.y, b.w, b.h);
-      });
-
-      // Draw Car
-      ctx.fillStyle = car.color;
-      ctx.fillRect(car.x, car.y, car.width, car.height);
-
-      // Draw Player (Only if not inside car)
-      if (!player.inCar) {
-        ctx.fillStyle = player.color;
-        ctx.beginPath();
-        ctx.arc(player.x, player.y, player.size / 2, 0, Math.PI * 2);
-        ctx.fill();
-      }
-    }
-
-    function loop() {
-      update();
-      draw();
-      requestAnimationFrame(loop);
-    }
-
-    loop();
-  </script>
 </body>
 </html>
