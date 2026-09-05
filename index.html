@@ -7,6 +7,8 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <!-- QR Code Generator Library -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <!-- Realistic Cursive Font for Signature -->
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@700&display=swap" rel="stylesheet">
   <style>
     * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; }
     body { background-color: #0f172a; color: #333; display: flex; flex-direction: column; align-items: center; padding: 20px; min-height: 100vh; }
@@ -45,8 +47,21 @@
 
     .cert-footer { margin-top: 30px; display: flex; justify-content: space-between; align-items: flex-end; }
     .sig-container { text-align: center; width: 160px; }
-    .sig-image { height: 45px; width: auto; max-width: 150px; object-fit: contain; display: block; margin: 0 auto 5px; }
-    .sig-box { border-top: 1px solid #333; font-size: 12px; font-weight: bold; padding-top: 4px; }
+    
+    /* Blue Ink Pen Style Signature */
+    .blue-pen-signature {
+      font-family: 'Caveat', cursive;
+      font-size: 38px;
+      color: #002b80; /* Royal Blue Pen Color */
+      display: inline-block;
+      margin-bottom: -10px;
+      transform: rotate(-4deg); /* Slanted Pen Stroke Effect */
+      letter-spacing: 1px;
+      text-shadow: 0.5px 0.5px 1px rgba(0, 43, 128, 0.4);
+    }
+    
+    .sig-image { height: 40px; width: auto; max-width: 150px; object-fit: contain; display: block; margin: 0 auto 5px; }
+    .sig-box { border-top: 1px solid #333; font-size: 12px; font-weight: bold; padding-top: 4px; margin-top: 5px; }
     
     #qrcode { width: 65px; height: 65px; margin: 0 auto; }
   </style>
@@ -82,7 +97,7 @@
       <input type="file" id="photoUpload" accept="image/*">
     </div>
     <div class="form-group full-width">
-      <label>डिजिटल सिग्नेचर अपलोड (Upload Signature Image)</label>
+      <label>Authorized Signatory सिग्नेचर अपलोड (Optionally)</label>
       <input type="file" id="sigUpload" accept="image/*">
     </div>
   </div>
@@ -125,7 +140,8 @@
 
     <div class="cert-footer">
       <div class="sig-container">
-        <img id="outSig1" class="sig-image" style="display:none;">
+        <!-- Blue Pen Stylized Signature for Abhishek -->
+        <span class="blue-pen-signature">Abhishek</span>
         <div class="sig-box">Course Director</div>
       </div>
       <div class="sig-container">
@@ -143,7 +159,6 @@
   let uploadedPhoto = '';
   let uploadedSig = '';
 
-  // Photo Upload Handler
   document.getElementById('photoUpload').addEventListener('change', function(e) {
     const file = e.target.files[0];
     if (file) {
@@ -155,7 +170,6 @@
     }
   });
 
-  // Signature Upload Handler
   document.getElementById('sigUpload').addEventListener('change', function(e) {
     const file = e.target.files[0];
     if (file) {
@@ -188,24 +202,19 @@
     document.getElementById('outRollNo').innerText = randomRoll;
     document.getElementById('outDate').innerText = today;
 
-    // Set Photo
     if(uploadedPhoto) {
       const img = document.getElementById('outPhoto');
       img.src = uploadedPhoto;
       img.style.display = 'block';
     }
 
-    // Set Signature
     if(uploadedSig) {
-      const sig1 = document.getElementById('outSig1');
       const sig2 = document.getElementById('outSig2');
-      sig1.src = uploadedSig;
       sig2.src = uploadedSig;
-      sig1.style.display = 'block';
       sig2.style.display = 'block';
     }
 
-    // Generate QR Code
+    // QR Code
     document.getElementById("qrcode").innerHTML = "";
     new QRCode(document.getElementById("qrcode"), {
       text: `Student: ${student} | Roll: ${randomRoll} | Course: ${course} | Grade: ${grade}`,
