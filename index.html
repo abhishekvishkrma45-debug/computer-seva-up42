@@ -3,103 +3,170 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Computer Certificate Generator</title>
+  <title>Pro Computer Certificate Generator</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <!-- QR Code Generator Library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <style>
     * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; }
     body { background-color: #0f172a; color: #333; display: flex; flex-direction: column; align-items: center; padding: 20px; min-height: 100vh; }
 
-    .form-box { background: #1e293b; color: #fff; padding: 25px; border-radius: 12px; width: 100%; max-width: 550px; box-shadow: 0 8px 20px rgba(0,0,0,0.4); margin-bottom: 25px; }
+    .form-box { background: #1e293b; color: #fff; padding: 25px; border-radius: 12px; width: 100%; max-width: 600px; box-shadow: 0 8px 20px rgba(0,0,0,0.4); margin-bottom: 25px; }
     .form-box h2 { text-align: center; color: #38bdf8; margin-bottom: 20px; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
     .form-group { margin-bottom: 12px; }
-    label { display: block; font-size: 14px; margin-bottom: 5px; color: #94a3b8; }
+    .full-width { grid-column: span 2; }
+    label { display: block; font-size: 13px; margin-bottom: 5px; color: #94a3b8; }
     input, select { width: 100%; padding: 10px; border: 1px solid #334155; background: #0f172a; color: #fff; border-radius: 6px; font-size: 14px; outline: none; }
     
     .btn { width: 100%; padding: 12px; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; color: white; margin-top: 10px; }
     .btn-blue { background: #2563eb; }
     .btn-green { background: #16a34a; }
 
-    /* Certificate Design */
-    .cert-container { display: none; width: 100%; max-width: 800px; background: #fff; padding: 15px; }
+    /* Certificate Layout */
+    .cert-container { display: none; width: 100%; max-width: 850px; background: #fff; padding: 15px; }
     .cert-border { border: 8px double #1e3a8a; padding: 30px; text-align: center; background: #fafafa; position: relative; }
-    .inst-name { font-size: 28px; font-weight: bold; color: #1e3a8a; text-transform: uppercase; letter-spacing: 1px; }
-    .inst-sub { font-size: 13px; color: #64748b; margin-bottom: 20px; }
     
-    .cert-title { font-size: 34px; font-family: 'Georgia', serif; color: #b45309; margin: 15px 0; text-transform: uppercase; font-weight: bold; }
-    .cert-text { font-size: 16px; color: #334155; margin: 10px 0; line-height: 1.6; }
-    .student-name { font-size: 26px; font-weight: bold; color: #0f172a; border-bottom: 2px solid #1e3a8a; display: inline-block; padding: 0 15px; margin: 10px 0; }
-    .course-name { font-size: 22px; font-weight: bold; color: #2563eb; }
+    .header-layout { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #1e3a8a; padding-bottom: 15px; margin-bottom: 15px; }
+    .logo-box img { width: 70px; height: 70px; object-fit: contain; }
+    .inst-info { flex-grow: 1; }
+    .inst-name { font-size: 26px; font-weight: bold; color: #1e3a8a; text-transform: uppercase; letter-spacing: 1px; }
+    .inst-sub { font-size: 12px; color: #64748b; }
+    .photo-box { width: 75px; height: 90px; border: 1px solid #cbd5e1; background: #eee; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+    .photo-box img { width: 100%; height: 100%; object-fit: cover; }
 
-    .cert-details { margin: 20px auto; width: 80%; border-collapse: collapse; }
+    .cert-title { font-size: 32px; font-family: 'Georgia', serif; color: #b45309; margin: 10px 0; text-transform: uppercase; font-weight: bold; }
+    .cert-text { font-size: 15px; color: #334155; margin: 8px 0; line-height: 1.5; }
+    .student-name { font-size: 24px; font-weight: bold; color: #0f172a; border-bottom: 2px solid #1e3a8a; display: inline-block; padding: 0 15px; margin: 8px 0; }
+    .course-name { font-size: 20px; font-weight: bold; color: #2563eb; }
+
+    .cert-details { margin: 15px auto; width: 85%; border-collapse: collapse; }
     .cert-details td { padding: 6px 10px; font-size: 14px; text-align: left; border-bottom: 1px dashed #cbd5e1; }
 
-    .cert-footer { margin-top: 40px; display: flex; justify-content: space-between; align-items: flex-end; }
-    .sig-box { border-top: 1px solid #333; width: 160px; font-size: 13px; font-weight: bold; padding-top: 5px; }
-    .seal { width: 75px; height: 75px; border-radius: 50%; background: #1e3a8a; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold; text-align: center; border: 2px dashed #facc15; }
+    .cert-footer { margin-top: 30px; display: flex; justify-content: space-between; align-items: flex-end; }
+    .sig-container { text-align: center; width: 160px; }
+    .sig-image { height: 45px; width: auto; max-width: 150px; object-fit: contain; display: block; margin: 0 auto 5px; }
+    .sig-box { border-top: 1px solid #333; font-size: 12px; font-weight: bold; padding-top: 4px; }
+    
+    #qrcode { width: 65px; height: 65px; margin: 0 auto; }
   </style>
 </head>
 <body>
 
 <div class="form-box">
-  <h2>कंप्यूटर सर्टिफिकेट फॉर्म</h2>
-  <div class="form-group">
-    <label>सेंटर का नाम (Institute Name)</label>
-    <input type="text" id="instNameInput" value="National Computer Academy">
-  </div>
-  <div class="form-group">
-    <label>छात्र का नाम (Student Name)</label>
-    <input type="text" id="studentNameInput" placeholder="नाम लिखें">
-  </div>
-  <div class="form-group">
-    <label>कोर्स का नाम (Course)</label>
-    <select id="courseInput">
-      <option value="ADCA (Advanced Diploma in Computer Applications)">ADCA</option>
-      <option value="DCA (Diploma in Computer Applications)">DCA</option>
-      <option value="CCC (Course on Computer Concepts)">CCC</option>
-      <option value="Tally Prime & Accounting">Tally Prime</option>
-    </select>
-  </div>
-  <div class="form-group">
-    <label>ग्रेड / ग्रेडिंग (Grade)</label>
-    <input type="text" id="gradeInput" value="A+">
+  <h2>एडवांस्ड सर्टिफिकेट जनरेटर</h2>
+  <div class="form-grid">
+    <div class="form-group full-width">
+      <label>इंस्टीट्यूट का नाम (Institute Name)</label>
+      <input type="text" id="instNameInput" value="National Computer Academy">
+    </div>
+    <div class="form-group">
+      <label>छात्र का नाम (Student Name)</label>
+      <input type="text" id="studentNameInput" placeholder="छात्र का नाम">
+    </div>
+    <div class="form-group">
+      <label>कोर्स (Course)</label>
+      <select id="courseInput">
+        <option value="ADCA (Advanced Diploma in Computer Applications)">ADCA</option>
+        <option value="DCA (Diploma in Computer Applications)">DCA</option>
+        <option value="CCC (Course on Computer Concepts)">CCC</option>
+        <option value="Tally Prime & Accounting">Tally Prime</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>ग्रेड (Grade)</label>
+      <input type="text" id="gradeInput" value="A+">
+    </div>
+    <div class="form-group">
+      <label>स्टूडेंट फोटो (Student Photo)</label>
+      <input type="file" id="photoUpload" accept="image/*">
+    </div>
+    <div class="form-group full-width">
+      <label>डिजिटल सिग्नेचर अपलोड (Upload Signature Image)</label>
+      <input type="file" id="sigUpload" accept="image/*">
+    </div>
   </div>
   <button class="btn btn-blue" onclick="generateCertificate()">सर्टिफिकेट बनाएं</button>
 </div>
 
-<!-- Certificate Target -->
+<!-- Certificate Design -->
 <div id="certificateArea" class="cert-container">
   <div class="cert-border">
-    <div class="inst-name" id="outInstName">National Computer Academy</div>
-    <div class="inst-sub">An ISO 9001:2015 Certified Computer Education Institute</div>
+    
+    <div class="header-layout">
+      <div class="logo-box">
+        <div id="qrcode"></div>
+      </div>
+      <div class="inst-info">
+        <div class="inst-name" id="outInstName">National Computer Academy</div>
+        <div class="inst-sub">An ISO 9001:2015 Certified Computer Education Institute</div>
+      </div>
+      <div class="photo-box">
+        <img id="outPhoto" src="" alt="Photo" style="display:none;">
+      </div>
+    </div>
     
     <div class="cert-title">Certificate of Completion</div>
     <div class="cert-text">This is to certify that</div>
     <div class="student-name" id="outStudentName">-</div>
-    <div class="cert-text">has successfully completed the course in</div>
+    <div class="cert-text">has successfully completed the prescribed course of study in</div>
     <div class="course-name" id="outCourse">-</div>
 
     <table class="cert-details">
       <tr>
-        <td><strong>Roll No / Reg ID:</strong> <span id="outRollNo">-</span></td>
-        <td><strong>Grade Awarded:</strong> <span id="outGrade">-</span></td>
+        <td><strong>Reg / Roll No:</strong> <span id="outRollNo">-</span></td>
+        <td><strong>Grade:</strong> <span id="outGrade">-</span></td>
       </tr>
       <tr>
         <td><strong>Issue Date:</strong> <span id="outDate">-</span></td>
-        <td><strong>Status:</strong> Passed</td>
+        <td><strong>Verification Status:</strong> Verified</td>
       </tr>
     </table>
 
     <div class="cert-footer">
-      <div class="sig-box">Course Coordinator</div>
-      <div class="seal">VERIFIED<br>CERTIFICATE</div>
-      <div class="sig-box">Authorized Signatory</div>
+      <div class="sig-container">
+        <img id="outSig1" class="sig-image" style="display:none;">
+        <div class="sig-box">Course Director</div>
+      </div>
+      <div class="sig-container">
+        <img id="outSig2" class="sig-image" style="display:none;">
+        <div class="sig-box">Authorized Signatory</div>
+      </div>
     </div>
+
   </div>
 </div>
 
-<button id="pdfBtn" class="btn btn-green" style="display:none; max-width: 550px;" onclick="downloadPDF()">📄 Download PDF Certificate</button>
+<button id="pdfBtn" class="btn btn-green" style="display:none; max-width: 600px; margin-top:15px;" onclick="downloadPDF()">📄 Download PDF Certificate</button>
 
 <script>
+  let uploadedPhoto = '';
+  let uploadedSig = '';
+
+  // Photo Upload Handler
+  document.getElementById('photoUpload').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        uploadedPhoto = evt.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+  });
+
+  // Signature Upload Handler
+  document.getElementById('sigUpload').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        uploadedSig = evt.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+  });
+
   function generateCertificate() {
     const inst = document.getElementById('instNameInput').value.trim();
     const student = document.getElementById('studentNameInput').value.trim();
@@ -112,7 +179,7 @@
     }
 
     const today = new Date().toLocaleDateString('en-GB');
-    const randomRoll = 'NCA-' + Math.floor(100000 + Math.random() * 900000);
+    const randomRoll = 'REG-' + Math.floor(100000 + Math.random() * 900000);
 
     document.getElementById('outInstName').innerText = inst || 'National Computer Academy';
     document.getElementById('outStudentName').innerText = student;
@@ -120,6 +187,31 @@
     document.getElementById('outGrade').innerText = grade;
     document.getElementById('outRollNo').innerText = randomRoll;
     document.getElementById('outDate').innerText = today;
+
+    // Set Photo
+    if(uploadedPhoto) {
+      const img = document.getElementById('outPhoto');
+      img.src = uploadedPhoto;
+      img.style.display = 'block';
+    }
+
+    // Set Signature
+    if(uploadedSig) {
+      const sig1 = document.getElementById('outSig1');
+      const sig2 = document.getElementById('outSig2');
+      sig1.src = uploadedSig;
+      sig2.src = uploadedSig;
+      sig1.style.display = 'block';
+      sig2.style.display = 'block';
+    }
+
+    // Generate QR Code
+    document.getElementById("qrcode").innerHTML = "";
+    new QRCode(document.getElementById("qrcode"), {
+      text: `Student: ${student} | Roll: ${randomRoll} | Course: ${course} | Grade: ${grade}`,
+      width: 65,
+      height: 65
+    });
 
     document.getElementById('certificateArea').style.display = 'block';
     document.getElementById('pdfBtn').style.display = 'block';
