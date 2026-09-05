@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Desi Beats - YouTube Player</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      background: #0f0c20;
+      color: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .player-card {
+      background: #181332;
+      border: 1px solid #2d2456;
+      border-radius: 16px;
+      padding: 25px;
+      width: 100%;
+      max-width: 420px;
+      box-shadow: 0 15px 30px rgba(0,0,0,0.5);
+      text-align: center;
+    }
+
+    h2 {
+      color: #ff0055;
+      font-size: 1.4rem;
+      margin-bottom: 5px;
+    }
+
+    p.subtitle {
+      color: #8f8ba8;
+      font-size: 0.85rem;
+      margin-bottom: 20px;
+    }
+
+    /* Video Player (Hidden by default, used for audio) */
+    .iframe-container {
+      position: relative;
+      width: 100%;
+      height: 200px;
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 20px;
+      background: #000;
+    }
+
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+
+    /* Track List */
+    .playlist {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-height: 200px;
+      overflow-y: auto;
+      text-align: left;
+    }
+
+    .song-item {
+      background: #231c42;
+      padding: 10px 15px;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: background 0.2s;
+      font-size: 0.9rem;
+    }
+
+    .song-item:hover {
+      background: #32285c;
+    }
+
+    .song-item.active {
+      border-left: 4px solid #ff0055;
+      background: #2d2353;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="player-card">
+    <h2>🎵 Desi Beats Player</h2>
+    <p class="subtitle">Trending Indian YouTube Songs</p>
+
+    <!-- YouTube Iframe -->
+    <div class="iframe-container">
+      <div id="player"></div>
+    </div>
+
+    <!-- Playlist -->
+    <div class="playlist" id="playlist">
+      <div class="song-item active" onclick="loadSong('5EQ_46MvByE', this)">
+        <span>1. Kesariya (Brahmastra)</span>
+        <span>▶</span>
+      </div>
+      <div class="song-item" onclick="loadSong('VCAI3v6CgXg', this)">
+        <span>2. Cheques (Shubh)</span>
+        <span>▶</span>
+      </div>
+      <div class="song-item" onclick="loadSong('kY8243q-7tI', this)">
+        <span>3. Pasoori (Ali Sethi)</span>
+        <span>▶</span>
+      </div>
+      <div class="song-item" onclick="loadSong('2g5xkLqIElU', this)">
+        <span>4. Tum Hi Ho (Aashiqui 2)</span>
+        <span>▶</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- YouTube Iframe API Script -->
+  <script>
+    var tag = document.createElement('script');
+    tag.src = "https://www.youtube.com/iframe_api";
+    var firstScriptTag = document.getElementsByTagName('script')[0];
+    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+    var player;
+    function onYouTubeIframeAPIReady() {
+      player = new YT.Player('player', {
+        height: '200',
+        width: '100%',
+        videoId: '5EQ_46MvByE', // Default song ID
+        playerVars: {
+          'autoplay': 0,
+          'controls': 1,
+          'modestbranding': 1
+        }
+      });
+    }
+
+    function loadSong(videoId, element) {
+      if (player && player.loadVideoById) {
+        player.loadVideoById(videoId);
+      }
+
+      // Highlight Active Song
+      const items = document.querySelectorAll('.song-item');
+      items.forEach(item => item.classList.remove('active'));
+      element.classList.add('active');
+    }
+  </script>
+
+</body>
+</html>
